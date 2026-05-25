@@ -1,0 +1,20 @@
+# Ignore everything by default
+*
+
+# Allow Git to traverse directories
+!*/
+
+# C/C++ source and headers
+!*.cpp
+!*.h
+
+# Build/project config
+!CMakeLists.txt
+
+# Docs and metadata
+!*.md
+!*.txt
+
+# Git/editor config you may want tracked
+!.gitignore
+
