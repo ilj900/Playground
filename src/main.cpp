@@ -1,6 +1,6 @@
-#include <print>
+#include <gtest/gtest.h>
 
-int main()
-{
-    std::println("Hello, World!");
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
