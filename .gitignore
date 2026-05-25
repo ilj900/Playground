@@ -16,5 +16,5 @@
 !*.txt
 
 # Git/editor config you may want tracked
-!.gitignore
+!/.gitignore
 
