@@ -5,6 +5,10 @@ project(Playground LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_library(LRandom INTERFACE)
+
+target_include_directories(LRandom INTERFACE include)
+
 # Fetch GoogleTest
 include(FetchContent)
 FetchContent_Declare(
@@ -20,8 +24,9 @@ enable_testing()
 # Your test executable
 add_executable(Playground
         src/main.cpp
+        src/rng_test.cpp
         src/unsorted.cpp)
-target_link_libraries(Playground PRIVATE GTest::gtest)
+target_link_libraries(Playground PRIVATE GTest::gtest LRandom)
 
 include(GoogleTest)
 gtest_discover_tests(Playground)
