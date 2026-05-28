@@ -32,7 +32,7 @@ TEST(Random, RandomImage)
     Image->Write("SimpleRandom.png");
 }
 
-TEST(Random, RandomDiscrepancy)
+TEST(Random, RandomUniform)
 {
     uint32_t ImageWidth = 1024;
     auto Image = ImageWrapperFactory::CreateRGB8(ImageWidth, ImageWidth);
@@ -47,5 +47,24 @@ TEST(Random, RandomDiscrepancy)
         (*Image)[X_i, Y_i] = {255, 255, 255};
     }
 
-    Image->Write("RandomDiscrepancy.png");
+    Image->Write("RandomUniform.png");
+}
+
+TEST(Random, RandomNormal)
+{
+    uint32_t ImageWidth = 1024;
+    auto Image = ImageWrapperFactory::CreateRGB8(ImageWidth, ImageWidth);
+
+    auto RNG = RNG::GetDeterministicNormalFloatRNG(0.25, 0.25);
+    for (uint32_t i = 0; i < ImageWidth * 16; i++)
+    {
+        float X = RNG();
+        float Y = RNG();
+        if (X < 0 || X > 1 || Y < 0 || Y > 1) continue;
+        uint32_t X_i = uint32_t(X * ImageWidth);
+        uint32_t Y_i = uint32_t(Y * ImageWidth);
+        (*Image)[X_i, Y_i] = {255, 255, 255};
+    }
+
+    Image->Write("RandomNormal.png");
 }
