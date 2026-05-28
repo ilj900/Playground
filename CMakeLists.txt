@@ -1,32 +1,51 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.27)
 
-project(Playground LANGUAGES CXX)
+project(Playground LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(LRandom INTERFACE)
+include(cmake/Dependencies.cmake)
 
+# ------------------------------------------------------------------------------
+# Build stb
+# ------------------------------------------------------------------------------
+add_library(stb_lib STATIC src/stb_implementation.cpp)
+target_include_directories(stb_lib PUBLIC ${stb_SOURCE_DIR})
+
+# ------------------------------------------------------------------------------
+# Build tinyexr
+# ------------------------------------------------------------------------------
+
+add_library(tinyexr_lib STATIC
+        ${tinyexr_SOURCE_DIR}/tinyexr.cc
+        ${tinyexr_SOURCE_DIR}/deps/miniz/miniz.c)
+target_include_directories(tinyexr_lib PUBLIC
+        ${tinyexr_SOURCE_DIR}
+        ${tinyexr_SOURCE_DIR}/deps/miniz)
+
+# ------------------------------------------------------------------------------
+# Build LImageWrapper
+# ------------------------------------------------------------------------------
+add_library(LImageWrapper INTERFACE)
+target_include_directories(LImageWrapper INTERFACE include)
+target_link_libraries( LImageWrapper INTERFACE stb_lib tinyexr_lib)
+
+# ------------------------------------------------------------------------------
+# Build LRandom
+# ------------------------------------------------------------------------------
+add_library(LRandom INTERFACE)
 target_include_directories(LRandom INTERFACE include)
 
-# Fetch GoogleTest
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        v1.17.0  # use a recent stable tag
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
+# ------------------------------------------------------------------------------
+# Build GTest
+# ------------------------------------------------------------------------------
 enable_testing()
-
-# Your test executable
 add_executable(Playground
         src/main.cpp
         src/rng_test.cpp
         src/unsorted.cpp)
-target_link_libraries(Playground PRIVATE GTest::gtest LRandom)
+target_link_libraries(Playground PRIVATE GTest::gtest LRandom LImageWrapper)
 
 include(GoogleTest)
 gtest_discover_tests(Playground)

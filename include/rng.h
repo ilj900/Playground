@@ -3,9 +3,24 @@
 #include <random>
 
 template <typename T>
+inline constexpr bool is_valid_rng_type_v =
+    std::is_same_v<T, short>              ||
+    std::is_same_v<T, int>                ||
+    std::is_same_v<T, long>               ||
+    std::is_same_v<T, long long>          ||
+    std::is_same_v<T, unsigned short>     ||
+    std::is_same_v<T, unsigned int>       ||
+    std::is_same_v<T, unsigned long>      ||
+    std::is_same_v<T, unsigned long long> ||
+    std::is_same_v<T, float>              ||
+    std::is_same_v<T, double>             ||
+    std::is_same_v<T, long double>;
+
+template <typename T>
 class TRNG
 {
-    static_assert(std::is_arithmetic_v<T>);
+    static_assert(is_valid_rng_type_v<T>,
+        "TRNG: type not supported by std::uniform distribution");
 
     using EngineType = std::conditional_t<
           (sizeof(T) > 4),
@@ -21,7 +36,7 @@ class TRNG
 
 public:
     TRNG(T Min, T Max, uint64_t Seed) :
-    Generator(Seed),
+    Generator(static_cast<EngineType::result_type>(Seed)),
     Distribution(Min, Max)  {}
 
     T operator()()
