@@ -51,6 +51,20 @@ TEST(Math, Mandelbrot)
         {
             if (Event.type == SDL_EVENT_QUIT)
                 Running = false;
+            else if (Event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+            {
+                float px = Event.button.x;
+                float py = Event.button.y;
+                float cx = LeftTop.x + (px / ImageWidth) * Size.x;
+                float cy = LeftTop.y + (py / ImageWidth) * Size.y;
+                float scale = 1.0f;
+                if (Event.button.button == SDL_BUTTON_LEFT) scale = 0.5f;
+                if (Event.button.button == SDL_BUTTON_RIGHT) scale = 2.0f;
+                Size.x *= scale;
+                Size.y *= scale;
+                LeftTop.x = cx - (px / ImageWidth) * Size.x;
+                LeftTop.y = cy - (py / ImageWidth) * Size.y;
+            }
         }
 
         for (int py = 0; py < ImageWidth; py++)
