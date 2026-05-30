@@ -44,6 +44,12 @@ add_library(LMath INTERFACE)
 target_include_directories(LMath INTERFACE include)
 
 # ------------------------------------------------------------------------------
+# Build LTimer
+# ------------------------------------------------------------------------------
+add_library(LTimer INTERFACE)
+target_include_directories(LTimer INTERFACE include)
+
+# ------------------------------------------------------------------------------
 # Build GTest
 # ------------------------------------------------------------------------------
 enable_testing()
@@ -52,7 +58,7 @@ add_executable(Playground
         src/rng_test.cpp
         src/math_test.cpp
         src/unsorted.cpp)
-target_link_libraries(Playground PRIVATE GTest::gtest SDL3::SDL3 LRandom LImageWrapper LMath)
+target_link_libraries(Playground PRIVATE GTest::gtest SDL3::SDL3 LRandom LImageWrapper LMath LTimer)
 
 include(GoogleTest)
 gtest_discover_tests(Playground)

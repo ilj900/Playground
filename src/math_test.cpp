@@ -3,14 +3,15 @@
 
 #include "vec_math.h"
 #include "img_wrapper.h"
+#include "timer.h"
 
 TEST(Math, Mandelbrot)
 {
     const int ImageWidth = 2048;
     auto Image = ImageWrapperFactory::CreateRGB8(ImageWidth, ImageWidth);
 
-    FPoint3 LeftTop = {-0.732f, -0.292f, 0.f};
-    FVec3 Size = {0.04f, 0.04f, 0.f};
+    FPoint3 LeftTop = {-2.f, -2.f, 0.f};
+    FVec3 Size = {4.f, 4.f, 0.f};
     const int MaxIterations = 512;
 
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -19,7 +20,7 @@ TEST(Math, Mandelbrot)
         FAIL();
     }
 
-    SDL_Window* Window = SDL_CreateWindow("CPU Framebuffer", ImageWidth, ImageWidth, 0);
+    SDL_Window* Window = SDL_CreateWindow("CPU Mandelbrot", ImageWidth, ImageWidth, 0);
 
     if (!Window)
     {
@@ -38,9 +39,9 @@ TEST(Math, Mandelbrot)
         ImageWidth * sizeof(RGB8)
     );
 
-
     bool Running = true;
     int Frame = 0;
+    Timer T("Mandelbrot frame time: ");
 
     while (Running)
     {
@@ -56,7 +57,7 @@ TEST(Math, Mandelbrot)
         {
             for (int px = 0; px < ImageWidth; px++)
             {
-                FVec3 C = {LeftTop.x + (float(px) / ImageWidth) * Size.x, LeftTop.y - (float(py) / ImageWidth) * Size.y, 0};
+                FVec3 C = {LeftTop.x + (float(px) / ImageWidth) * Size.x, LeftTop.y + (float(py) / ImageWidth) * Size.y, 0};
                 FVec3 Z{};
                 int Iter = 0;
                 while (Iter < MaxIterations && Z.LengthSquared() < 4)
@@ -77,6 +78,8 @@ TEST(Math, Mandelbrot)
                 }
             }
         }
+
+        T.ElapsedUpdatePrint();
 
         SDL_BlitSurface(ImageSurface, nullptr, WindowSurface, nullptr);
         SDL_UpdateWindowSurface(Window);
