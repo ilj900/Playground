@@ -46,7 +46,6 @@ class ImageWrapper
 
     uint32_t Width = 0;
     uint32_t Height = 0;
-    std::vector<PixelT> Data;
 
     friend class ImageWrapperFactory;
 
@@ -126,6 +125,8 @@ public:
     auto end()         { return Data.end(); }
     auto begin() const { return Data.begin(); }
     auto end()   const { return Data.end(); }
+
+    std::vector<PixelT> Data;
 };
 
 class ImageWrapperFactory

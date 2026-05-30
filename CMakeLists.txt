@@ -52,7 +52,7 @@ add_executable(Playground
         src/rng_test.cpp
         src/math_test.cpp
         src/unsorted.cpp)
-target_link_libraries(Playground PRIVATE GTest::gtest LRandom LImageWrapper LMath)
+target_link_libraries(Playground PRIVATE GTest::gtest SDL3::SDL3 LRandom LImageWrapper LMath)
 
 include(GoogleTest)
 gtest_discover_tests(Playground)
