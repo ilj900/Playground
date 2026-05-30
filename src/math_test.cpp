@@ -46,6 +46,7 @@ TEST(Math, Mandelbrot)
     while (Running)
     {
         SDL_Event Event;
+        static bool bNeedsRedraw = true;
 
         while (SDL_PollEvent(&Event))
         {
@@ -58,8 +59,16 @@ TEST(Math, Mandelbrot)
                 float cx = LeftTop.x + (px / ImageWidth) * Size.x;
                 float cy = LeftTop.y + (py / ImageWidth) * Size.y;
                 float scale = 1.0f;
-                if (Event.button.button == SDL_BUTTON_LEFT) scale = 0.5f;
-                if (Event.button.button == SDL_BUTTON_RIGHT) scale = 2.0f;
+                if (Event.button.button == SDL_BUTTON_LEFT)
+                {
+                    bNeedsRedraw = true;
+                    scale = 0.5f;
+                }
+                if (Event.button.button == SDL_BUTTON_RIGHT)
+                {
+                    bNeedsRedraw = true;
+                    scale = 2.0f;
+                }
                 Size.x *= scale;
                 Size.y *= scale;
                 LeftTop.x = cx - (px / ImageWidth) * Size.x;
@@ -67,30 +76,35 @@ TEST(Math, Mandelbrot)
             }
         }
 
-        for (int py = 0; py < ImageWidth; py++)
+        if (bNeedsRedraw)
         {
-            for (int px = 0; px < ImageWidth; px++)
+            for (int py = 0; py < ImageWidth; py++)
             {
-                FVec3 C = {LeftTop.x + (float(px) / ImageWidth) * Size.x, LeftTop.y + (float(py) / ImageWidth) * Size.y, 0};
-                FVec3 Z{};
-                int Iter = 0;
-                while (Iter < MaxIterations && Z.LengthSquared() < 4)
+                for (int px = 0; px < ImageWidth; px++)
                 {
-                    Z = {Z.x * Z.x - Z.y * Z.y + C.x, 2.f * Z.x * Z.y + C.y, 0.f};
-                    Iter++;
-                }
+                    FVec3 C = {LeftTop.x + (float(px) / ImageWidth) * Size.x, LeftTop.y + (float(py) / ImageWidth) * Size.y, 0};
+                    FVec3 Z{};
+                    int Iter = 0;
+                    while (Iter < MaxIterations && Z.LengthSquared() < 4)
+                    {
+                        Z = {Z.x * Z.x - Z.y * Z.y + C.x, 2.f * Z.x * Z.y + C.y, 0.f};
+                        Iter++;
+                    }
 
-                if (Iter == MaxIterations)
-                {
-                    (*Image)[uint32_t(px), uint32_t(py)] = {0, 0, 0};
-                }
-                else
-                {
-                    float t = std::sqrt(float(Iter) / MaxIterations);
-                    uint8_t v = uint8_t(t * 255.f);
-                    (*Image)[uint32_t(px), uint32_t(py)] = {v, v, v};
+                    if (Iter == MaxIterations)
+                    {
+                        (*Image)[uint32_t(px), uint32_t(py)] = {0, 0, 0};
+                    }
+                    else
+                    {
+                        float t = std::sqrt(float(Iter) / MaxIterations);
+                        uint8_t v = uint8_t(t * 255.f);
+                        (*Image)[uint32_t(px), uint32_t(py)] = {v, v, v};
+                    }
                 }
             }
+
+            bNeedsRedraw = false;
         }
 
         T.ElapsedUpdatePrint();
