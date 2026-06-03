@@ -6,12 +6,14 @@
 
 #include "img_wrapper.h"
 
-class SDLBase : public ::testing::Test
+class SDLInteractiveTest : public ::testing::Test
 {
 public:
-    void Init(const std::string& Title, int Width, int Height);
+    void Init(const std::string& Title, uint32_t Width, uint32_t Height);
     void Finish();
     void Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent = {});
+
+    void TearDown() override;
 
 protected:
     uint32_t Width = 0;

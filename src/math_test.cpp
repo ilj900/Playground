@@ -5,9 +5,9 @@
 #include "timer.h"
 #include "sdl_base.h"
 
-TEST_F(SDLBase, Mandelbrot)
+TEST_F(SDLInteractiveTest, Mandelbrot)
 {
-    Init("Mandelbrot", 2048, 2048);
+    ASSERT_NO_FATAL_FAILURE(Init("Mandelbrot", 2048, 2048));
 
     FPoint3 LeftTop = {-2.f, -2.f, 0.f};
     FVec3 Size = {4.f, 4.f, 0.f};
@@ -15,10 +15,10 @@ TEST_F(SDLBase, Mandelbrot)
 
     auto Update = [&]()
     {
-        Timer T("Mandelbrot frame time: ");
-
         if (bNeedsRedraw)
         {
+            Timer T("Mandelbrot frame time: ");
+            
             for (int py = 0; py < Height; py++)
             {
                 for (int px = 0; px < Width; px++)
@@ -78,6 +78,4 @@ TEST_F(SDLBase, Mandelbrot)
     };
 
     Execute(Update, PoolEvents);
-
-    Finish();
 }

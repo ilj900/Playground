@@ -1,30 +1,19 @@
 #include "sdl_base.h"
 
-#include <print>
-
-void SDLBase::Init(const std::string &Title, int Width, int Height)
+void SDLInteractiveTest::Init(const std::string &Title, uint32_t Width, uint32_t Height)
 {
     this->Width = Width;
     this->Height = Height;
 
     Image = ImageWrapperFactory::CreateRGB8(Width, Height);
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
-    {
-        std::println("SDL_Init failed: {}", SDL_GetError());
-        FAIL();
-    }
+    ASSERT_TRUE(SDL_Init(SDL_INIT_VIDEO)) << SDL_GetError();
 
     Window = SDL_CreateWindow(Title.c_str(), Width, Height, 0);
-
-    if (!Window)
-    {
-        std::println("SDL_CreateWindow failed: {}", SDL_GetError());
-        SDL_Quit();
-        FAIL();
-    }
+    ASSERT_NE(Window, nullptr) << SDL_GetError();
 
     WindowSurface = SDL_GetWindowSurface(Window);
+    ASSERT_NE(WindowSurface, nullptr) << SDL_GetError();
 
     ImageSurface = SDL_CreateSurfaceFrom(
         Width,
@@ -33,9 +22,10 @@ void SDLBase::Init(const std::string &Title, int Width, int Height)
         Image->Data.data(),
         Width * sizeof(RGB8)
     );
+    ASSERT_NE(ImageSurface, nullptr) << SDL_GetError();
 }
 
-void SDLBase::Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent)
+void SDLInteractiveTest::Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent)
 {
     bRunning = true;
     int Frame = 0;
@@ -66,9 +56,33 @@ void SDLBase::Execute(std::function<void()> Update, std::function<void(const SDL
     }
 }
 
-void SDLBase::Finish()
+void SDLInteractiveTest::Finish()
 {
-    SDL_DestroySurface(ImageSurface);
-    SDL_DestroyWindow(Window);
+    if (ImageSurface)
+    {
+        SDL_DestroySurface(ImageSurface);
+        ImageSurface = nullptr;
+    }
+
+    if (Window)
+    {
+        SDL_DestroyWindow(Window);
+        Window = nullptr;
+    }
+
+    WindowSurface = nullptr;
+
     SDL_Quit();
+
+    if (SDL_WasInit(SDL_INIT_VIDEO))
+    {
+        SDL_Quit();
+    }
+
+    Image = nullptr;
+}
+
+void SDLInteractiveTest::TearDown()
+{
+    Finish();
 }
