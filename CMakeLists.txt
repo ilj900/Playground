@@ -55,6 +55,7 @@ target_include_directories(LTimer INTERFACE include)
 enable_testing()
 add_executable(Playground
         src/main.cpp
+        src/sdl_base.cpp
         src/rng_test.cpp
         src/math_test.cpp
         src/unsorted.cpp)

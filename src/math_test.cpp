@@ -2,88 +2,31 @@
 #include <SDL3/SDL.h>
 
 #include "vec_math.h"
-#include "img_wrapper.h"
 #include "timer.h"
+#include "sdl_base.h"
 
-TEST(Math, Mandelbrot)
+TEST_F(SDLBase, Mandelbrot)
 {
-    const int ImageWidth = 2048;
-    auto Image = ImageWrapperFactory::CreateRGB8(ImageWidth, ImageWidth);
+    Init("Mandelbrot", 2048, 2048);
 
     FPoint3 LeftTop = {-2.f, -2.f, 0.f};
     FVec3 Size = {4.f, 4.f, 0.f};
-    const int MaxIterations = 512;
+    bool bNeedsRedraw = true;
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
+    auto Update = [&]()
     {
-        std::println("SDL_Init failed: {}", SDL_GetError());
-        FAIL();
-    }
-
-    SDL_Window* Window = SDL_CreateWindow("CPU Mandelbrot", ImageWidth, ImageWidth, 0);
-
-    if (!Window)
-    {
-        std::println("SDL_CreateWindow failed: {}", SDL_GetError());
-        SDL_Quit();
-        FAIL();
-    }
-
-    SDL_Surface* WindowSurface = SDL_GetWindowSurface(Window);
-
-    SDL_Surface* ImageSurface = SDL_CreateSurfaceFrom(
-        ImageWidth,
-        ImageWidth,
-        SDL_PIXELFORMAT_RGB24,
-        Image->Data.data(),
-        ImageWidth * sizeof(RGB8)
-    );
-
-    bool Running = true;
-    int Frame = 0;
-    Timer T("Mandelbrot frame time: ");
-
-    while (Running)
-    {
-        SDL_Event Event;
-        static bool bNeedsRedraw = true;
-
-        while (SDL_PollEvent(&Event))
-        {
-            if (Event.type == SDL_EVENT_QUIT)
-                Running = false;
-            else if (Event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-            {
-                float px = Event.button.x;
-                float py = Event.button.y;
-                float cx = LeftTop.x + (px / ImageWidth) * Size.x;
-                float cy = LeftTop.y + (py / ImageWidth) * Size.y;
-                float scale = 1.0f;
-                if (Event.button.button == SDL_BUTTON_LEFT)
-                {
-                    bNeedsRedraw = true;
-                    scale = 0.5f;
-                }
-                if (Event.button.button == SDL_BUTTON_RIGHT)
-                {
-                    bNeedsRedraw = true;
-                    scale = 2.0f;
-                }
-                Size.x *= scale;
-                Size.y *= scale;
-                LeftTop.x = cx - (px / ImageWidth) * Size.x;
-                LeftTop.y = cy - (py / ImageWidth) * Size.y;
-            }
-        }
+        Timer T("Mandelbrot frame time: ");
 
         if (bNeedsRedraw)
         {
-            for (int py = 0; py < ImageWidth; py++)
+            for (int py = 0; py < Height; py++)
             {
-                for (int px = 0; px < ImageWidth; px++)
+                for (int px = 0; px < Width; px++)
                 {
-                    FVec3 C = {LeftTop.x + (float(px) / ImageWidth) * Size.x, LeftTop.y + (float(py) / ImageWidth) * Size.y, 0};
+                    FVec3 C = {LeftTop.x + (float(px) / Width) * Size.x, LeftTop.y + (float(py) / Height) * Size.y, 0};
                     FVec3 Z{};
+
+                    constexpr int MaxIterations = 512;
                     int Iter = 0;
                     while (Iter < MaxIterations && Z.LengthSquared() < 4)
                     {
@@ -106,17 +49,35 @@ TEST(Math, Mandelbrot)
 
             bNeedsRedraw = false;
         }
+    };
 
-        T.ElapsedUpdatePrint();
+    auto PoolEvents = [&](const SDL_Event& Event)
+    {
+        if (Event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+        {
+            float px = Event.button.x;
+            float py = Event.button.y;
+            float cx = LeftTop.x + (px / Width) * Size.x;
+            float cy = LeftTop.y + (py / Height) * Size.y;
+            float scale = 1.0f;
+            if (Event.button.button == SDL_BUTTON_LEFT)
+            {
+                bNeedsRedraw = true;
+                scale = 0.5f;
+            }
+            if (Event.button.button == SDL_BUTTON_RIGHT)
+            {
+                bNeedsRedraw = true;
+                scale = 2.0f;
+            }
+            Size.x *= scale;
+            Size.y *= scale;
+            LeftTop.x = cx - (px / Width) * Size.x;
+            LeftTop.y = cy - (py / Height) * Size.y;
+        }
+    };
 
-        SDL_BlitSurface(ImageSurface, nullptr, WindowSurface, nullptr);
-        SDL_UpdateWindowSurface(Window);
+    Execute(Update, PoolEvents);
 
-        ++Frame;
-        SDL_Delay(16);
-    }
-
-    SDL_DestroySurface(ImageSurface);
-    SDL_DestroyWindow(Window);
-    SDL_Quit();
+    Finish();
 }

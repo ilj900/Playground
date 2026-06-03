@@ -212,6 +212,12 @@ Tuple3<T> max(const Tuple3<T>& A, const Tuple3<T>& B)
     return Tuple3<T>(std::max(A.x, B.x), std::max(A.y, B.y), std::max(A.z, B.z));
 }
 
+template <typename T>
+Tuple3<T> GramSchmidt(const Tuple3<T>& V, const Tuple3<T>& W)
+{
+    return V - dot(V, W) * W;
+}
+
 
 using FPoint3 = Tuple3<float>;
 using DPoint3 = Tuple3<double>;
