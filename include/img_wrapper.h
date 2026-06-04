@@ -245,3 +245,19 @@ public:
         return OpenFloat<4>(p);
     }
 };
+
+inline RGB8 HashColor(uint32_t Seed) noexcept
+{
+    Seed ^= Seed >> 16;
+    Seed *= 0x85ebca6bu;
+    Seed ^= Seed >> 13;
+    Seed *= 0xc2b2ae35u;
+    Seed ^= Seed >> 16;
+
+    return {
+        .R = static_cast<uint8_t>(Seed >> 16),
+        .G = static_cast<uint8_t>(Seed >> 8),
+        .B = static_cast<uint8_t>(Seed),
+    };
+}
+

@@ -136,3 +136,97 @@ TEST_F(SDLInteractiveTest, GameOfLife)
 
     Execute(Update);
 }
+
+TEST_F(SDLInteractiveTest, Voronoi)
+{
+    ASSERT_NO_FATAL_FAILURE(Init("Voronoi", 2048, 2048));
+
+    auto RNGW = RNG::GetDeterministicUniformFloatRNG(0, float(Width), 0);
+    auto RNGH = RNG::GetDeterministicUniformFloatRNG(0, float(Height), 1);
+    std::vector<FPoint3> Points(50);
+    for (auto& P : Points)
+    {
+        P.x = RNGW();
+        P.y = RNGH();
+    }
+
+    auto BackImage = ImageWrapperFactory::CreateRGB8(Width, Height);
+
+    bool bNeedsRedraw = true;
+
+    auto Update = [&]()
+    {
+        if (!bNeedsRedraw)
+        {
+            return;
+        }
+
+        Timer T("Voronoi frame time: ");
+
+        for (uint32_t py = 0; py < Height; py++)
+        {
+            for (uint32_t px = 0; px < Width; px++)
+            {
+                float BestDist2 = std::numeric_limits<float>::max();
+                float SecondBestDist2 = std::numeric_limits<float>::max();
+                uint32_t BestIndex = 0;
+
+                FPoint3 P = {float(px), float(py), 0};
+
+                for (uint32_t i = 0; i < Points.size(); i++)
+                {
+                    auto D = P - Points[i];
+                    auto Dist2 = D.LengthSquared();
+
+                    if (Dist2 < BestDist2)
+                    {
+                        SecondBestDist2 = BestDist2;
+                        BestDist2 = Dist2;
+                        BestIndex = i;
+                    }
+                    else if (Dist2 < SecondBestDist2)
+                    {
+                        SecondBestDist2 = Dist2;
+                    }
+                }
+
+                (*BackImage)[px, py] = HashColor(BestIndex + 1);  /// +1 because 0 is black
+            }
+        }
+
+        bNeedsRedraw = false;
+
+        // AA, but only a central part of the image, borders are ignored (Who will check it?)
+        for (uint32_t py = 1; py < Height - 1; py++)
+        {
+            for (uint32_t px = 1; px < Width - 1; px++)
+            {
+                auto Converter = [](const RGB8& P) -> FPoint3
+                {
+                    FPoint3 Result{};
+                    Result.x = float(P.R) / 255.0f;
+                    Result.y = float(P.G) / 255.0f;
+                    Result.z = float(P.B) / 255.0f;
+                    return Result;
+                };
+
+                FPoint3 Mix = Converter((*BackImage)[px, py]);
+                Mix += Converter((*BackImage)[px + 1, py]);
+                Mix += Converter((*BackImage)[px - 1, py]);
+                Mix += Converter((*BackImage)[px, py + 1]);
+                Mix += Converter((*BackImage)[px, py - 1]);
+                Mix += Converter((*BackImage)[px + 1, py + 1]);
+                Mix += Converter((*BackImage)[px + 1, py - 1]);
+                Mix += Converter((*BackImage)[px - 1, py + 1]);
+                Mix += Converter((*BackImage)[px - 1, py - 1]);
+
+                Mix /= 9;
+
+                (*Image)[px, py] = {static_cast<uint8_t>(Mix.x * 255), static_cast<uint8_t>(Mix.y * 255), static_cast<uint8_t>(Mix.z * 255)};
+            }
+        }
+
+    };
+
+    Execute(Update);
+}
