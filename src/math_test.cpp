@@ -163,68 +163,60 @@ TEST_F(SDLInteractiveTest, Voronoi)
 
         Timer T("Voronoi frame time: ");
 
+        auto FindNearestCell = [&](float x, float y) -> uint32_t
+        {
+            float BestDist2 = std::numeric_limits<float>::max();
+            uint32_t BestIndex = 0;
+
+            FPoint3 P = {x, y, 0};
+
+            for (uint32_t i = 0; i < Points.size(); i++)
+            {
+                auto D = P - Points[i];
+                float Dist2 = D.LengthSquared();
+
+                if (Dist2 < BestDist2)
+                {
+                    BestDist2 = Dist2;
+                    BestIndex = i;
+                }
+            }
+
+            return BestIndex;
+        };
+
+        constexpr uint32_t SamplesPerAxis = 4;
+        constexpr uint32_t SampleCount = SamplesPerAxis * SamplesPerAxis;
+
         for (uint32_t py = 0; py < Height; py++)
         {
             for (uint32_t px = 0; px < Width; px++)
             {
-                float BestDist2 = std::numeric_limits<float>::max();
-                float SecondBestDist2 = std::numeric_limits<float>::max();
-                uint32_t BestIndex = 0;
-
-                FPoint3 P = {float(px), float(py), 0};
-
-                for (uint32_t i = 0; i < Points.size(); i++)
+                uint32_t R = 0, G = 0, B = 0;
+                for (uint32_t sy = 0; sy < SamplesPerAxis; sy++)
                 {
-                    auto D = P - Points[i];
-                    auto Dist2 = D.LengthSquared();
+                    for (uint32_t sx = 0; sx < SamplesPerAxis; sx++)
+                    {
+                        float x = float(px) + (float(sx) + 0.5f) / float(SamplesPerAxis);
+                        float y = float(py) + (float(sy) + 0.5f) / float(SamplesPerAxis);
 
-                    if (Dist2 < BestDist2)
-                    {
-                        SecondBestDist2 = BestDist2;
-                        BestDist2 = Dist2;
-                        BestIndex = i;
-                    }
-                    else if (Dist2 < SecondBestDist2)
-                    {
-                        SecondBestDist2 = Dist2;
+                        RGB8 Color = HashColor(FindNearestCell(x, y) + 1);
+
+                        R += Color.R;
+                        G += Color.G;
+                        B += Color.B;
                     }
                 }
 
-                (*BackImage)[px, py] = HashColor(BestIndex + 1);  /// +1 because 0 is black
+                (*Image)[px, py] = {
+                    static_cast<uint8_t>(R / SampleCount),
+                    static_cast<uint8_t>(G / SampleCount),
+                    static_cast<uint8_t>(B / SampleCount)
+                };
             }
         }
 
         bNeedsRedraw = false;
-
-        // AA, but only a central part of the image, borders are ignored (Who will check it?)
-        for (uint32_t py = 1; py < Height - 1; py++)
-        {
-            for (uint32_t px = 1; px < Width - 1; px++)
-            {
-                auto Converter = [](const RGB8& P) -> FPoint3
-                {
-                    FPoint3 Result{};
-                    Result.x = float(P.R) / 255.0f;
-                    Result.y = float(P.G) / 255.0f;
-                    Result.z = float(P.B) / 255.0f;
-                    return Result;
-                };
-
-                FPoint3 Mix = Converter((*BackImage)[px, py]);
-                Mix += Converter((*BackImage)[px + 1, py]);
-                Mix += Converter((*BackImage)[px - 1, py]);
-                Mix += Converter((*BackImage)[px, py + 1]);
-                Mix += Converter((*BackImage)[px, py - 1]);
-                Mix += Converter((*BackImage)[px + 1, py + 1]);
-                Mix += Converter((*BackImage)[px + 1, py - 1]);
-                Mix += Converter((*BackImage)[px - 1, py + 1]);
-                Mix += Converter((*BackImage)[px - 1, py - 1]);
-
-                Mix /= 9;
-
-                (*Image)[px, py] = {static_cast<uint8_t>(Mix.x * 255), static_cast<uint8_t>(Mix.y * 255), static_cast<uint8_t>(Mix.z * 255)};
-            }
-        }
 
     };
 
