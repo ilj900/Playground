@@ -11,7 +11,7 @@ public:
         Message(Message), StartTime(std::chrono::steady_clock::now()) {};
     ~Timer()
     {
-        std::println("{}: {}ms.", Message, Elapsed());
+        std::println("{}{}ms.", Message, Elapsed());
     };
 
     float Elapsed() const

@@ -23,12 +23,13 @@ void SDLInteractiveTest::Init(const std::string &Title, uint32_t Width, uint32_t
         Width * sizeof(RGB8)
     );
     ASSERT_NE(ImageSurface, nullptr) << SDL_GetError();
+
+    Frame = 0;
 }
 
 void SDLInteractiveTest::Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent)
 {
     bRunning = true;
-    int Frame = 0;
 
     while (bRunning)
     {
@@ -71,8 +72,6 @@ void SDLInteractiveTest::Finish()
     }
 
     WindowSurface = nullptr;
-
-    SDL_Quit();
 
     if (SDL_WasInit(SDL_INIT_VIDEO))
     {

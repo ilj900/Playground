@@ -15,6 +15,12 @@ template <typename T, int C>
 struct Pixel;
 
 template <typename T>
+struct Pixel<T, 1> {
+    static constexpr int Channels = 3;
+    T R;
+};
+
+template <typename T>
 struct Pixel<T, 3> {
     static constexpr int Channels = 3;
     T R, G, B;
@@ -26,6 +32,7 @@ struct Pixel<T, 4> {
     T R, G, B, A;
 };
 
+using R8 = Pixel<uint8_t, 1>;
 using RGB8 = Pixel<uint8_t, 3>;
 using RGBA8 = Pixel<uint8_t, 4>;
 using RGB32F = Pixel<float, 3>;
@@ -139,6 +146,10 @@ public:
         return std::make_shared<ImageT>(typename ImageT::PrivateTag{}, Width, Height);
     }
 
+    static auto CreateR8   (uint32_t Width, uint32_t Height)
+    {
+        return Create<uint8_t, 1>(Width, Height);
+    }
     static auto CreateRGB8   (uint32_t Width, uint32_t Height)
     {
         return Create<uint8_t, 3>(Width, Height);

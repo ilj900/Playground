@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <SDL3/SDL.h>
 
+#include "rng.h"
 #include "vec_math.h"
 #include "timer.h"
 #include "sdl_base.h"
@@ -18,10 +19,10 @@ TEST_F(SDLInteractiveTest, Mandelbrot)
         if (bNeedsRedraw)
         {
             Timer T("Mandelbrot frame time: ");
-            
-            for (int py = 0; py < Height; py++)
+
+            for (uint32_t py = 0; py < Height; py++)
             {
-                for (int px = 0; px < Width; px++)
+                for (uint32_t px = 0; px < Width; px++)
                 {
                     FVec3 C = {LeftTop.x + (float(px) / Width) * Size.x, LeftTop.y + (float(py) / Height) * Size.y, 0};
                     FVec3 Z{};
@@ -78,4 +79,60 @@ TEST_F(SDLInteractiveTest, Mandelbrot)
     };
 
     Execute(Update, PoolEvents);
+}
+
+TEST_F(SDLInteractiveTest, GameOfLife)
+{
+    ASSERT_NO_FATAL_FAILURE(Init("GameOfLife", 2048, 2048));
+
+    auto ImgA = ImageWrapperFactory::CreateR8(Width, Height);
+    auto ImgB = ImageWrapperFactory::CreateR8(Width, Height);
+
+    auto RNG = RNG::GetDeterministicUniformIntRNG(0, 1);
+
+    for (uint32_t py = 0; py < Height; py++)
+    {
+        for (uint32_t px = 0; px < Width; px++)
+        {
+            (*ImgA)[px, py].R = RNG();
+        }
+    }
+
+    auto Update = [&]()
+    {
+        Timer T("GameOfLife frame time: ");
+
+        auto Image1 = Frame % 2 == 0 ? ImgA : ImgB;
+        auto Image2 = Frame % 2 == 0 ? ImgB : ImgA;
+
+        for (uint32_t py = 0; py < Height; py++)
+        {
+            uint32_t u = (py + Height - 1) % Height;
+            uint32_t d = (py + 1) % Height;
+
+            for (uint32_t px = 0; px < Width; px++)
+            {
+                uint32_t l = (px + Width - 1) % Width;
+                uint32_t r = (px + 1) % Width;
+
+                uint32_t copy = (*Image1)[px, py].R;
+                uint32_t c = (*Image1)[l, u].R;
+                c += (*Image1)[px, u].R;
+                c += (*Image1)[r, u].R;
+                c += (*Image1)[l, py].R;
+                c += (*Image1)[r, py].R;
+                c += (*Image1)[l, d].R;
+                c += (*Image1)[px, d].R;
+                c += (*Image1)[r, d].R;
+
+                c = c == 2 ? copy : c == 3 ? 1 : 0;
+
+                (*Image2)[px, py] = {static_cast<uint8_t>(c)};
+                (*Image)[px, py] = {static_cast<uint8_t>(c * 255u), 0, 0};
+            }
+        }
+
+    };
+
+    Execute(Update);
 }

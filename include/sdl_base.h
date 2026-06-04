@@ -13,9 +13,10 @@ public:
     void Finish();
     void Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent = {});
 
-    void TearDown() override;
+    int Frame = 0;
 
 protected:
+    void TearDown() override;
     uint32_t Width = 0;
     uint32_t Height = 0;
     SDL_Window* Window = nullptr;
