@@ -11,7 +11,7 @@ class SDLInteractiveTest : public ::testing::Test
 public:
     void Init(const std::string& Title, uint32_t Width, uint32_t Height);
     void Finish();
-    void Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent = {});
+    void Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> HandleEvent = {});
 
     int Frame = 0;
 

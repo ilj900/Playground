@@ -27,7 +27,7 @@ void SDLInteractiveTest::Init(const std::string &Title, uint32_t Width, uint32_t
     Frame = 0;
 }
 
-void SDLInteractiveTest::Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> ParseEvent)
+void SDLInteractiveTest::Execute(std::function<void()> Update, std::function<void(const SDL_Event& Event)> HandleEvent)
 {
     bRunning = true;
 
@@ -37,13 +37,13 @@ void SDLInteractiveTest::Execute(std::function<void()> Update, std::function<voi
 
         while (SDL_PollEvent(&Event))
         {
-            if (Event.type == SDL_EVENT_QUIT)
+            if (Event.type == SDL_EVENT_KEY_DOWN && Event.key.key == SDLK_ESCAPE)
             {
                 bRunning = false;
             }
-            if (ParseEvent)
+            if (HandleEvent)
             {
-                ParseEvent(Event);
+                HandleEvent(Event);
             }
         }
 

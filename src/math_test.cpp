@@ -52,7 +52,7 @@ TEST_F(SDLInteractiveTest, Mandelbrot)
         }
     };
 
-    auto PoolEvents = [&](const SDL_Event& Event)
+    auto PollEvents = [&](const SDL_Event& Event)
     {
         if (Event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
         {
@@ -78,7 +78,7 @@ TEST_F(SDLInteractiveTest, Mandelbrot)
         }
     };
 
-    Execute(Update, PoolEvents);
+    Execute(Update, PollEvents);
 }
 
 TEST_F(SDLInteractiveTest, GameOfLife)
@@ -217,7 +217,6 @@ TEST_F(SDLInteractiveTest, Voronoi)
         }
 
         bNeedsRedraw = false;
-
     };
 
     Execute(Update);
