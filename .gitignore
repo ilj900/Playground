@@ -18,3 +18,4 @@
 # Git/editor config you may want tracked
 !/.gitignore
 
+!cmake/*
